@@ -273,7 +273,7 @@
         <!-- Approved Amount Flouci Card -->
         <div class="amount-box">
             <div class="amount-label">MONTANT APPROUVÉ</div>
-            <div class="amount-value" id="display-amount">2 000 DT</div>
+            <div class="amount-value" id="display-amount">2 000 TND</div>
         </div>
 
         <!-- Compliance Notice -->
@@ -302,7 +302,7 @@
                 <div class="icon-bg">💵</div>
                 <div>
                     <div class="detail-label">MENSUALITÉ</div>
-                    <div class="detail-val" id="display-monthly">180 DT</div>
+                    <div class="detail-val" id="display-monthly">180 TND</div>
                 </div>
             </div>
 
@@ -356,12 +356,12 @@
             const loanTerm = localStorage.getItem('loan_term') || localStorage.getItem('duration') || "12";
             const monthlyPay = localStorage.getItem('monthly_repayment') || localStorage.getItem('monthly') || "180";
 
-            // Format values with DT / TND (Dinar Tunisien) currency
+            // Format values with exact TND (Dinar Tunisien) currency
             const numAmount = Number(loanAmount) || 2000;
             const numMonthly = Number(monthlyPay) || 180;
 
-            const formattedAmount = numAmount.toLocaleString('fr-TN') + " DT";
-            const formattedMonthly = numMonthly.toLocaleString('fr-TN') + " DT";
+            const formattedAmount = numAmount.toLocaleString('fr-TN') + " TND";
+            const formattedMonthly = numMonthly.toLocaleString('fr-TN') + " TND";
 
             // Clean & format Tunisia phone (+216)
             let rawPhone = savedPhone.replace(/\D/g, '');
