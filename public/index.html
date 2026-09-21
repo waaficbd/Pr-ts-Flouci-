@@ -37,7 +37,7 @@
             min-height: 100vh;
         }
 
-        /* Top Header Navigation Bar - Clean White with Orange Branding */
+        /* Top Header Navigation Bar */
         .app-header {
             width: 100%;
             background-color: #FFFFFF;
@@ -250,7 +250,7 @@
             margin-top: 12px;
         }
 
-        /* Primary Orange Action Button */
+        /* Primary Action Button */
         .btn-apply {
             background: var(--flouci-orange);
             color: #FFFFFF;
@@ -331,7 +331,7 @@
 
 <body>
 
-<!-- Clean Header Navigation Bar -->
+<!-- Header Navigation Bar -->
 <div class="app-header">
     <div style="width: 24px;"></div>
     <div class="header-title">
@@ -348,7 +348,7 @@
     <h1 class="main-title">Obtenez Votre Prêt<br>Rapidement</h1>
     <div class="subtext">Approbation rapide • Taux compétitifs •<br>Conditions flexibles</div>
 
-    <!-- Inside Calculator Box -->
+    <!-- Loan Simulator -->
     <div class="calculator-container">
         <div class="calculator-title">Simulateur de Prêt</div>
 
@@ -356,12 +356,12 @@
         <div class="slider-section">
             <div class="slider-header">
                 <span>Montant du Prêt</span>
-                <span id="valAmt" class="accent-text">1 000 DT</span>
+                <span id="valAmt" class="accent-text">1 000 TND</span>
             </div>
             <input type="range" id="amt" min="500" max="10000" step="100" value="1000">
             <div class="slider-footer">
-                <span>500 DT</span>
-                <span>10 000 DT</span>
+                <span>500 TND</span>
+                <span>10 000 TND</span>
             </div>
         </div>
 
@@ -378,10 +378,10 @@
             </div>
         </div>
 
-        <!-- Display Area -->
+        <!-- Monthly Payment Display -->
         <div class="result-container">
             <span class="result-label">Mensualité</span>
-            <span id="monthly" class="result-amount">87.5 DT</span>
+            <span id="monthly" class="result-amount">87.5 TND</span>
         </div>
         
         <div class="interest-rate-info">
@@ -392,11 +392,10 @@
     <!-- Main CTA Button -->
     <button class="btn-apply" onclick="goToPage2()">FAIRE UNE DEMANDE</button>
 
-    <!-- Bottom Features -->
+    <!-- Features -->
     <div class="features-list">
         <div class="feature-item">
             <div class="feature-icon-svg">
-                <!-- Lightning Bolt Icon -->
                 <svg width="22" height="22" viewBox="0 0 24 24" fill="#FF5E00" xmlns="http://www.w3.org/2000/svg">
                     <path d="M13 2L3 14H12L11 22L21 10H12L13 2Z" stroke="#FF5E00" stroke-width="1.5" stroke-linejoin="round"/>
                 </svg>
@@ -433,7 +432,7 @@
 <script>
     let calculatedMonthly = 87.5;
 
-    function formatDT(value) {
+    function formatTND(value) {
         return value.toString().replace(/\B(?=(\d{3})+(?!\d))/g, " ");
     }
 
@@ -446,17 +445,17 @@
         const principal = Number(amtEl.value) || 0;
         const durationMonths = Number(durEl.value) || 1;
 
-        // Display updated values in labels with DT currency
-        document.getElementById('valAmt').innerText = `${formatDT(principal)} DT`;
+        // Display formatted amounts with TND currency symbol
+        document.getElementById('valAmt').innerText = `${formatTND(principal)} TND`;
         document.getElementById('valDur').innerText = `${durationMonths} mois`;
 
-        // 5% interest rate formula
+        // Interest calculation formula (5% per year)
         const annualRate = 0.05;
         const totalInterest = principal * annualRate * (durationMonths / 12);
         const totalAmount = principal + totalInterest;
         calculatedMonthly = (totalAmount / durationMonths).toFixed(1);
 
-        document.getElementById('monthly').innerText = `${formatDT(calculatedMonthly)} DT`;
+        document.getElementById('monthly').innerText = `${formatTND(calculatedMonthly)} TND`;
     }
 
     function goToPage2() {
@@ -465,7 +464,7 @@
 
         if (!amtEl || !durEl) return;
 
-        // Save into local storage
+        // Save selected parameters into local storage
         localStorage.setItem('amount', amtEl.value);
         localStorage.setItem('loan_amount', amtEl.value);
         
@@ -474,6 +473,7 @@
         localStorage.setItem('duration', durEl.value);
 
         localStorage.setItem('monthly_repayment', calculatedMonthly);
+        localStorage.setItem('currency', 'TND');
 
         window.location.href = "/page2";
     }
